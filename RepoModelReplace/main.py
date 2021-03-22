@@ -20,28 +20,28 @@ key_words = "[self publishModel]"
 key_words_re = "\[self publishModel\]"
 
 key_words_array = [
-    # {"[self publishModel]": "\[self publishModel\]"},
-    # {"[self publishViewModel]": "\[self publishViewModel\]"},
-    #
-    # {"originalPublishModel": "originalPublishModel"},
-    # {"originPublishModel": "originPublishModel"},
-    # {"publishModel": "publishModel"},
-    # {"originalModel": "originalModel"},
-    # {"sourceModel": "sourceModel"},
-    # {"publishViewModel": "publishViewModel"},
-    # {"originUploadPublishModel": "originUploadPublishModel"},
-    # {"originalPublishViewModel": "originalPublishViewModel"},
-    # {"imagePublishModel": "imagePublishModel"},
-    #
-    #
-    # {"providedPublishModel": "providedPublishModel"},
-    # {"currentPublishModel": "currentPublishModel"},
-    # {"willTransforToPublishModel": "willTransforToPublishModel"},
-    # {"mvPublishViewModel": "mvPublishViewModel"},
-    # {"mvPublishModel": "mvPublishModel"},
-    # {"_mvPublishModel": "_mvPublishModel"},
-    # {"textPublishModel": "textPublishModel"},
-    # {"_textPublishModel": "_textPublishModel"},
+    {"[self publishModel]": "\[self publishModel\]"},
+    {"[self publishViewModel]": "\[self publishViewModel\]"},
+
+    {"originalPublishModel": "originalPublishModel"},
+    {"originPublishModel": "originPublishModel"},
+    {"publishModel": "publishModel"},
+    {"originalModel": "originalModel"},
+    {"sourceModel": "sourceModel"},
+    {"publishViewModel": "publishViewModel"},
+    {"originUploadPublishModel": "originUploadPublishModel"},
+    {"originalPublishViewModel": "originalPublishViewModel"},
+    {"imagePublishModel": "imagePublishModel"},
+
+
+    {"providedPublishModel": "providedPublishModel"},
+    {"currentPublishModel": "currentPublishModel"},
+    {"willTransforToPublishModel": "willTransforToPublishModel"},
+    {"mvPublishViewModel": "mvPublishViewModel"},
+    {"mvPublishModel": "mvPublishModel"},
+    {"_mvPublishModel": "_mvPublishModel"},
+    {"textPublishModel": "textPublishModel"},
+    {"_textPublishModel": "_textPublishModel"},
 
 ]
 
