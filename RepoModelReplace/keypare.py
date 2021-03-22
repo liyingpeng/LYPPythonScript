@@ -69,6 +69,8 @@ key_pare = {
 "activityHashtagID" : "repoPublishConfig",
 "isFirstPost" : "repoPublishConfig",
 "hotSpotWord" : "repoPublishConfig",
+"saveToAlbum" : "repoPublishConfig",
+
 #pragma mark - sticker => ACCRepoStickerModel
 "interactionStickers" : "repoSticker",
 "dateTextStickerContent" : "repoSticker",
@@ -125,6 +127,8 @@ key_pare = {
 "enableOriginSoundInMV" : "repoMV",
 "mvID" : "repoMV",
 "serverExecutedImageDict" : "repoMV",
+"slideshowMVID" : "repoMV",
+
 #pragma mark - Challenge => ACCRepoChallengeModel
 "challenge" : "repoChallenge",
 #pragma mark - Upload => ACCRepoUploadInfomationModel
@@ -208,34 +212,107 @@ key_pare = {
 }
 
 function_keypare= {
-    "supportMusicLyricSticker": "repoSticker",
-    "originalFrameNamesArray": "repoRecordInfo",
     "sourceInfosArray": "repoUploadInfo",
+    "isAIVideoClipMode": "repoUploadInfo",
+
     "isClassicalMV": "repoCutSame",
+
+    "draftFolder": "repoDraft",
     "tagForDraftFromBackEdit": "repoDraft",
+
     "customStickersInfos": "repoSticker",
     "supportNewEditClip": "repoContext",
     "newClipForMultiUploadVideos": "repoContext",
+
+    "hadUseBeauty": "repoBeauty",
+
+    "recommendedAICoverTrackInfo": "repoPublishConfig",
+    "recommendedAICoverTrackInfoWithCoverStartTime": "repoPublishConfig",
+    "composedCoverImage": "repoPublishConfig",
+
     "beautifyTrackInfoDic": "repoRecordInfo",
+    "shouldForbidCommerce": "repoRecordInfo",
+    "originalFrameNamesArray": "repoRecordInfo",
+
+    "audioDidChanged": "repoCaption",
+    "resetAudioChangeFlag": "repoCaption",
+    "feedbackCaptionWithAwemeId": "repoCaption",
+    "queryCaptionsWithUrl": "repoCaption",
+
     "commonTrackInfoDic": "repoTrack",
     "performanceTrackInfoDic": "repoTrack",
+    "referExtra": "repoTrack",
+    "videoFragmentInfoDictionary": "repoTrack",
+    "mediaCountInfo": "repoTrack",
+    "getLogInfo": "repoTrack",
+    "trackPostEvent": "repoTrack",
+
     "socialStickerTrackInfoDic": "repoSticker",
     "textStickerTrackInfo": "repoSticker",
+    "supportMusicLyricSticker": "repoSticker",
+    "infoStickerChallengeNames": "repoSticker",
+    "infoStickerChallengeIDs": "repoSticker",
+    "removeTextReadingInCurrentVideo": "repoSticker",
+    "allAudioAssetsInVideoData": "repoSticker",
+    "audioAssetInVideoDataWithKey": "repoSticker",
+    "customStickersInfos": "repoSticker",
+
     "hasEditMusicRange": "repoMusic",
+    "musicAsset": "repoMusic",
+
     "allAudioAssetsInVideoData": "repoSticker",
     "audioAssetInVideoDataWithKey": "repoSticker",
     "removeTextReadingInCurrentVideo": "repoSticker",
     "isMultiVideoFastImport": "repoVideoInfo",
     "isAIVideoClipMode": "repoUploadInfo",
+
     "stickerBindedChallengeArray": "repoProp",
+
+    "hasVideoClipEdits": "repoReshoot",
+    "getStickerSavePhotoCount": "repoReshoot",
+    "removeVideoClipEdits": "repoReshoot",
+
     "allChallengeIdArray": "repoChallenge",
     "allChallengeNameArray": "repoChallenge",
+
+    "currentBindChallengeNames": "repoChallengeBind",
+    "currentBindChallengeIds": "repoChallengeBind",
+    "markNeedRemoveWhenReRecord": "repoChallengeBind",
+
     "getLogInfo": "repoTrack",
     "mediaCountInfo": "repoTrack",
     "referExtra": "repoTrack",
+
+    "specializedCanvasPhotoExportSettings": "repoVideoInfo",
+    "isMultiVideoFastImport": "repoVideoInfo",
     "isVideoNeedReverse": "repoVideoInfo",
+
     "removeVideoClipEdits" : "repoReshoot",
+
     "isTC21RedPackageActivity" : "repoContext",
+    "shouldSelectMusicAutomatically": "repoContext",
+    "shouldUseMVMusic": "repoContext",
+
+    "isOldDuet": "repoDuet",
+    "challengeNames": "repoDuet",
+    "challengeIDs": "repoDuet",
+
+    "isFixedDuration": "repoFlowControl",
+
+    "shouldEditWithLightningFilter": "repoQuickStory",
+    "shouldBuildQuickStoryPanel": "repoQuickStory",
+    "shouldDisableQuickPublishActionSheet": "repoQuickStory",
+
+    "startTraceTimeForKey": "repoRecorderTrackerTool",
+    "stopTraceTimeForKey": "repoRecorderTrackerTool",
+    "addTrackTime": "repoRecorderTrackerTool",
+    "trackerDic": "repoRecorderTrackerTool",
+    "cleanTraceTime": "repoRecorderTrackerTool",
+
+    "voiceEffectType": "repoVoiceChanger",
+    "clearVoiceEffect": "repoVoiceChanger",
+    "voiceEffectIDs": "repoVoiceChanger",
+
 }
 
 repo_keypare = {
@@ -288,4 +365,4 @@ startwith_keypare = {
     '#import "AWEVideoPublishViewModel+': '#import "ACCRepositoryModules.h"\n'
 }
 
-excludeFiles = ["PublishViewModel", "PublishRepository"]
+excludeFiles = ["PublishViewModel.m", "PublishViewModel.h", "PublishRepository"]

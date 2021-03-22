@@ -16,13 +16,36 @@ from keypare import function_keypare
 from keypare import replace_kaypare
 from keypare import startwith_keypare, excludeFiles, repo_keypare
 
-key_words = "model"
+key_words = "[self publishModel]"
+key_words_re = "\[self publishModel\]"
 
-def _read_and_replace(_trace_file):
-    for exclude in excludeFiles:
-        if exclude in _trace_file:
-            return
+key_words_array = [
+    # {"[self publishModel]": "\[self publishModel\]"},
+    # {"[self publishViewModel]": "\[self publishViewModel\]"},
+    #
+    # {"originalPublishModel": "originalPublishModel"},
+    # {"originPublishModel": "originPublishModel"},
+    # {"publishModel": "publishModel"},
+    # {"originalModel": "originalModel"},
+    # {"sourceModel": "sourceModel"},
+    # {"publishViewModel": "publishViewModel"},
+    # {"originUploadPublishModel": "originUploadPublishModel"},
+    # {"originalPublishViewModel": "originalPublishViewModel"},
+    # {"imagePublishModel": "imagePublishModel"},
+    #
+    #
+    # {"providedPublishModel": "providedPublishModel"},
+    # {"currentPublishModel": "currentPublishModel"},
+    # {"willTransforToPublishModel": "willTransforToPublishModel"},
+    # {"mvPublishViewModel": "mvPublishViewModel"},
+    # {"mvPublishModel": "mvPublishModel"},
+    # {"_mvPublishModel": "_mvPublishModel"},
+    # {"textPublishModel": "textPublishModel"},
+    # {"_textPublishModel": "_textPublishModel"},
 
+]
+
+def _read_and_replace(_trace_file, key_words, key_words_re):
     is_cameraclient = False
     if 'CameraClient' in _trace_file:
         is_cameraclient = True
@@ -37,15 +60,6 @@ def _read_and_replace(_trace_file):
         importLines = []
         importIndex = 0
         for s in lines:
-            # for key in startwith_keypare.keys():
-            #     value = startwith_keypare[key]
-            #     if s.startswith(key):
-            #         s = value
-            # for key in replace_kaypare.keys():
-            #     value = replace_kaypare[key]
-            #     if key in s:
-            #         s = s.replace(key, value)
-
             if s.startswith("#import"):
                 importLines.append(s)
                 importIndex = lines.index(s)
@@ -53,21 +67,16 @@ def _read_and_replace(_trace_file):
                 continue
 
             #deal with function
-            it = re.finditer(r'([a-zA-Z]+\.)*'+key_words+' [a-zA-Z]+', s)
+            it = re.finditer(r'([a-zA-Z]+\.)*'+key_words_re+' [a-zA-Z]+[:\]]', s)
             for match in it:
                 match_string = match.group()
                 splitArray_funtion = match_string.split(' ')
                 match_string_function = splitArray_funtion[-1]
-                match_string_pre = splitArray_funtion[0]
-                splitArray = match_string_pre.split('.')
-                # indexOfPublishModel = splitArray.index('publishModel')
-                # remove 'inputData'
-                # if indexOfPublishModel > 0 and splitArray[indexOfPublishModel - 1] == 'inputData':
-                #     splitArray.remove('inputData')
-                # indexOfPublishModel = splitArray.index('publishModel')
-                # splitArray[indexOfPublishModel] = "repository"
-                if match_string_function in function_keypare.keys():
-                    function_value = function_keypare[match_string_function]
+                match_string_function_key = match_string_function.strip(']')
+                splitArray_funtion.pop()
+                match_string_pre = ' '.join(splitArray_funtion)
+                if match_string_function_key in function_keypare.keys():
+                    function_value = function_keypare[match_string_function_key]
                     import_key = repo_keypare[function_value]
                     if is_cameraclient:
                         import_str = "#import " + '"' + import_key + '.h"\n'
@@ -78,23 +87,31 @@ def _read_and_replace(_trace_file):
                         newLines.insert(importIndex + 1, import_str)
                         importIndex = importIndex+1
                         importLines.append(import_str)
-                    splitArray.append(function_value)
-                    replace_string = ".".join(splitArray) + " " + match_string_function
+                    replace_string = match_string_pre + "." + function_value + " " + match_string_function
+                    s = s.replace(match_string, replace_string, 1)
+                elif match_string_function_key in key_pare.keys():
+                    function_value = key_pare[match_string_function_key]
+                    import_key = repo_keypare[function_value]
+                    if is_cameraclient:
+                        import_str = "#import " + '"' + import_key + '.h"\n'
+                    else:
+                        import_str = "#import <CameraClient/" + import_key + '.h>\n'
+
+                    if (import_str not in importLines):
+                        newLines.insert(importIndex + 1, import_str)
+                        importIndex = importIndex + 1
+                        importLines.append(import_str)
+                    replace_string = match_string_pre + "." + function_value + " " + match_string_function
                     s = s.replace(match_string, replace_string, 1)
 
             #deal with property
-            it = re.finditer(r'([a-zA-Z]+\.)*'+key_words+'(\.[a-zA-Z]+)*', s)
+            it = re.finditer(r'([a-zA-Z]+\.)*'+key_words_re+'(\.[a-zA-Z]+)*', s)
             for match in it:
                 match_string = match.group()
+                if len(match_string) <= 0:
+                    continue
                 splitArray = match_string.split('.')
                 indexOfPublishModel = splitArray.index(key_words)
-                # # remove 'inputData'
-                # if indexOfPublishModel > 0 and splitArray[indexOfPublishModel - 1] == 'inputData':
-                #     splitArray.remove('inputData')
-                # indexOfPublishModel = splitArray.index('publishModel')
-                # if indexOfPublishModel + 1 < len(splitArray) and splitArray[indexOfPublishModel + 1].startswith('repo'):
-                #     splitArray.pop(indexOfPublishModel + 1)
-                # splitArray[indexOfPublishModel] = "repository"
                 if indexOfPublishModel + 1 < len(splitArray):
                     match_key = splitArray[indexOfPublishModel + 1]
                     if match_key in key_pare.keys():
@@ -130,6 +147,22 @@ def _read_and_replace(_trace_file):
     else:
         print('file not exist')
 
+
+def dealing_with_dir_loop(dir_file_path):
+    for exclude in excludeFiles:
+        if exclude in dir_file_path:
+            return
+    if "AWEVideoPublishViewModel+" in dir_file_path:
+        _read_and_replace(dir_file_path, "self", "self")
+        return
+    if "AWEOpenShareProviderIMP" in dir_file_path:
+        _read_and_replace(dir_file_path, "model", "model")
+        return
+    for keypare in key_words_array:
+        keywords = keypare.keys()[0]
+        keywordsre = keypare.values()[0]
+        _read_and_replace(dir_file_path, keywords, keywordsre)
+
 def dealing_with_dir(root_path):
     dir_or_files = os.listdir(root_path)
     for dir_file in dir_or_files:
@@ -138,7 +171,7 @@ def dealing_with_dir(root_path):
             dealing_with_dir(dir_file_path)
         else:
             if os.path.splitext(dir_file_path)[-1] == ".h" or os.path.splitext(dir_file_path)[-1] == ".m":
-                _read_and_replace(dir_file_path)
+                dealing_with_dir_loop(dir_file_path)
 
 # Press the green button in the gutter to run the script.
 if __name__ == '__main__':
