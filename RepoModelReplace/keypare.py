@@ -37,7 +37,6 @@ key_pare = {
 "recordSourceFrom" : "repoContext",
 "photoToVideoPhotoCountType" : "repoContext",
 "isQuickStoryPictureVideoType" : "repoContext",
-#pragma mark - 活动
 "activityVideoType" : "repoContext",
 #pragma mark - video info => ACCRepoVideoInfoModel
 "video" : "repoVideoInfo",
@@ -202,6 +201,10 @@ key_pare = {
 "isQuickShootTarget" : "repoQuickStory",
 "editPageButtonStyle" : "repoQuickStory",
 "isAvatarQuickStory" : "repoQuickStory",
+"videoCode": "repoQuickStory",
+"saveStoryToLocal" : "repoQuickStory",
+"shootWay" : "repoQuickStory",
+
 }
 
 function_keypare= {
@@ -241,7 +244,7 @@ repo_keypare = {
     "repoContext": "ACCRepoContextModel",
     "repoVideoInfo": "ACCRepoVideoInfoModel",
     "repoPublishConfig": "ACCRepoPublishConfigModel",
-    "repoSticker": "ACCRepoStickerModel",
+    "repoSticker": "AWEVideoPublishViewModel+RepoSticker",
     "repoReshoot": "ACCRepoReshootModel",
     "repoVoiceChanger": "ACCRepoVoiceChangerModel",
     "repoCutSame": "ACCRepoCutSameModel",
@@ -261,6 +264,7 @@ repo_keypare = {
     "repoRecordInfo": "ACCRecordInformationRepoModel",
     "repoTextMode": "ACCRepoTextModeModel",
     "repoQuickStory": "ACCRepoQuickStoryModel",
+    "repoEditEffect": "ACCRepoEditEffectModel",
 }
 
 replace_kaypare = {
@@ -284,4 +288,4 @@ startwith_keypare = {
     '#import "AWEVideoPublishViewModel+': '#import "ACCRepositoryModules.h"\n'
 }
 
-excludeFiles = ["PublishViewModel"]
+excludeFiles = ["PublishViewModel", "PublishRepository"]
