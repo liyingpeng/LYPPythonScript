@@ -12,6 +12,7 @@ import shutil
 ADD_STACK_COUNT = 0
 REMOVE_STACK_COUNT = 0
 DIFF_STACK_COUNT = 0
+TRACE_GAP_ALLOW = 1000
 
 class TraceItem(object):
     def __init__(self, name=None, pos=None, tid=None, ts=None, cls_method=None):
@@ -21,7 +22,7 @@ class TraceItem(object):
         self.ts = ts
         self.cls_method = cls_method
         # 当前方法耗时，如果有重名方法 当前为总时长
-        self.duration = None
+        self.duration = -1
         # 当前方法子方法列表
         self.sub_item_list = []
         # 父方法指针
@@ -34,20 +35,25 @@ class TraceItem(object):
         # for diff
         self.diff_duration = None
         self.diff_count = None
+        self.stack = None
 
     def is_done(self):
-        return self.duration is not None
+        return self.duration != -1
 
     def print_stack(self):
         print("总耗时" + str(self.duration))
         print("总次数" + str(len(self.same_list)))
+        self.calculate_stack()
+        print("堆栈信息" + self.stack)
+        print("--------------- isolation --------------")
+
+    def calculate_stack(self):
         stack = self.name
         super = self.super_item
         while super is not None:
             stack += "->" + super.name
             super = super.super_item
-        print("堆栈信息" + stack)
-        print("--------------- isolation --------------")
+        self.stack = stack
 
 def print_n(item_list, n):
     if n > len(item_list) - 1:
@@ -86,13 +92,10 @@ def read_track_list_from_jsonfile(blame_filepath):
         # 完备性校验
         pre_item = temp_trace_list[-1]
         while pre_item is not None:
-            # if not pre_item.is_done():
-                # print(pre_item)
             pre_item = pre_item.super_item
         return trace_list
 
 def write_trace_item_to(trace_item, trace_list, temp_trace_list):
-
     pre_item = None
     super_item = None
     if len(trace_list) > 0:
@@ -110,39 +113,19 @@ def write_trace_item_to(trace_item, trace_list, temp_trace_list):
             # 计算耗时
             if trace_item.name == pre_item.name and trace_item.pos == 'E':
                 pre_item.duration = trace_item.ts - pre_item.ts
-
-                if pre_item.merge_index is not None:
-                    merge_item = None
-                    remove_from_list = None
-                    if super_item:
-                        merge_item = super_item.sub_item_list[pre_item.merge_index]
-                        remove_from_list = super_item.sub_item_list
-                    else:
-                        merge_item = trace_list[pre_item.merge_index]
-                        remove_from_list = trace_list
-                    if merge_item is not None:
-                        merge_item_to_item(pre_item, merge_item)
-                    if remove_from_list is not None:
-                        remove_from_list.remove(pre_item)
                 return
             else:
                 if trace_item.pos == 'B':
                     trace_item.super_item = pre_item
                     if pre_item.sub_item_list is not None:
-                        for index, item in enumerate(pre_item.sub_item_list):
-                            if item.name == trace_item.name:
-                                trace_item.merge_index = index
                         pre_item.sub_item_list.append(trace_item)
                     else:
                         pre_item.sub_item_list = [trace_item]
                 else:
                     exit(-1)
-        else:
-            exit(-1)
+        #else:
+            # only 'B' 只有'E'
     else:
-        for index, item in enumerate(trace_list):
-            if item.name == trace_item.name:
-                trace_item.merge_index = index
         trace_list.append(trace_item)
 
     temp_trace_list.append(trace_item)
@@ -155,7 +138,7 @@ def parse_one_trace_log(source_file, output_file):
 
         output = open(output_file, 'w')
         output.write("[\n")
-        with open(file_path, 'r') as f:
+        with open(file_path, 'r', encoding='windows-1252') as f:
             for line in f:
                 if line.isspace():
                     continue
@@ -190,7 +173,7 @@ def parse_one_trace_log(source_file, output_file):
         output.close()
 
 
-def stack_diff_recursion(source_list, compare_list, stack_add, stack_remove, stack_diff):
+def _stack_diff_recursion(source_list, compare_list, stack_add, stack_remove, stack_diff):
     if source_list is None:
         stack_add += compare_list
         return
@@ -211,10 +194,14 @@ def stack_diff_recursion(source_list, compare_list, stack_add, stack_remove, sta
         else:
             if len(source_item.sub_item_list) == 0 and len(compare_list[compare_pointer].sub_item_list) == 0:
                 source_item.diff_count = len(compare_list[compare_pointer].same_list) - len(source_item.same_list)
+                if not compare_list[compare_pointer].is_done():
+                    compare_list[compare_pointer].duration = 0
+                if not source_item.is_done():
+                    source_item.duration = 0
                 source_item.diff_duration = compare_list[compare_pointer].duration - source_item.duration
                 stack_diff.append(source_item)
             else:
-                stack_diff_recursion(source_item.sub_item_list, compare_list[compare_pointer].sub_item_list, stack_add, stack_remove, stack_diff)
+                _stack_diff_recursion(source_item.sub_item_list, compare_list[compare_pointer].sub_item_list, stack_add, stack_remove, stack_diff)
 
     for compare_item in compare_list:
         in_source = False
@@ -231,7 +218,7 @@ def stack_diff(source_list, compare_list):
     stack_remove = []
     stack_diff = []
 
-    stack_diff_recursion(source_list, compare_list, stack_add, stack_remove, stack_diff)
+    _stack_diff_recursion(source_list, compare_list, stack_add, stack_remove, stack_diff)
 
     stack_add.sort(key=lambda k: -k.duration)
     stack_remove.sort(key=lambda k: -k.duration)
@@ -257,6 +244,31 @@ def stack_diff(source_list, compare_list):
     print_n(stack_remove, 2)
     print("--------------- isolation Diff耗时 --------------")
     print_n(stack_diff, 2)
+
+def _analyze_recursive(source_list, result_list):
+    for source_item in source_list:
+        if source_item.duration < TRACE_GAP_ALLOW:
+            continue
+        if len(source_item.sub_item_list) == 0:
+            source_item.calculate_stack()
+            result_list.append(source_item)
+        else:
+            total_sub_duration = functools.reduce(lambda a, b: a + b,
+                                                  list(map(lambda x: x.duration, source_item.sub_item_list)))
+            if source_item.duration - total_sub_duration > TRACE_GAP_ALLOW:
+                source_item.calculate_stack()
+                result_list.append(source_item)
+
+            _analyze_recursive(source_item.sub_item_list, result_list)
+
+def analyze(source_list):
+    print("--------------- 耗时分析  start --------------")
+    source_list = [item for item in source_list if item.duration > TRACE_GAP_ALLOW]
+    result_list = []
+    _analyze_recursive(source_list, result_list)
+    result_list.sort(key=lambda k: -k.duration)
+    print("--------------- 耗时分析  finish --------------")
+
 
 # Press the green button in the gutter to run the script.
 if __name__ == '__main__':
@@ -284,25 +296,34 @@ if __name__ == '__main__':
     compare_json_file_path = output_file_path + "/trace_compare.json"
     trace_list_source = None
     trace_list_compare = None
-    if os.path.isdir(source_file):
-        print("正在进行 - parse source file")
-        parse_one_trace_log(source_file, source_json_file_path)
-        print("正在进行 - generate source trace list")
-        trace_list_source = read_track_list_from_jsonfile(source_json_file_path)
-    else:
-        print("正在进行 - generate source trace list")
-        trace_list_source = read_track_list_from_jsonfile(source_file)
-    if os.path.isdir(compare_file):
-        print("正在进行 - parse compare file")
-        parse_one_trace_log(compare_file, compare_json_file_path)
-        print("正在进行 - generate compare trace list")
-        trace_list_compare = read_track_list_from_jsonfile(compare_json_file_path)
-    else:
-        print("正在进行 - generate compare trace list")
-        trace_list_compare = read_track_list_from_jsonfile(compare_file)
+    if source_file is not None:
+        if os.path.isdir(source_file):
+            print("正在进行 - parse source file")
+            parse_one_trace_log(source_file, source_json_file_path)
+            print("正在进行 - generate source trace list")
+            trace_list_source = read_track_list_from_jsonfile(source_json_file_path)
+        else:
+            print("正在进行 - generate source trace list")
+            trace_list_source = read_track_list_from_jsonfile(source_file)
+
+    if compare_file is not None:
+        if os.path.isdir(compare_file):
+            print("正在进行 - parse compare file")
+            parse_one_trace_log(compare_file, compare_json_file_path)
+            print("正在进行 - generate compare trace list")
+            trace_list_compare = read_track_list_from_jsonfile(compare_json_file_path)
+        else:
+            print("正在进行 - generate compare trace list")
+            trace_list_compare = read_track_list_from_jsonfile(compare_file)
 
     if trace_list_source is not None and trace_list_compare is not None:
         print("正在进行 - stack diff")
         stack_diff(trace_list_source, trace_list_compare)
+    elif trace_list_source is not None:
+        print("正在进行 - source analyzer")
+        analyze(trace_list_source)
+    elif trace_list_compare is not None:
+        print("正在进行 - compare analyzer")
+        analyze(trace_list_compare)
 
 # See PyCharm help at https://www.jetbrains.com/help/pycharm/
